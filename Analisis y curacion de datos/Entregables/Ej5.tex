@@ -1,0 +1,124 @@
+\documentclass[11pt,a4paper,dvipsnames]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2.50cm, right=1.50cm,top=1.50cm, bottom=1.50cm]{geometry}
+\usepackage[spanish]{babel}
+\usepackage[superscript,compress,sort]{cite}
+\usepackage{wrapfig, framed, caption}
+\usepackage[export]{adjustbox}
+\usepackage[font=small,labelfont=bf, figurename=Figure]{caption}
+\usepackage{subcaption}
+\usepackage[x11names,table]{xcolor}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{gensymb}
+\usepackage{titlesec}
+\usepackage{ragged2e}
+\usepackage[hidelinks]{hyperref}
+\usepackage{textcmds}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage[spanish]{babel}
+\usepackage{tikz}
+\usepackage{helvet} % setea la letra a Arial que es lo que solicita3
+\usepackage{textcmds}
+\usepackage{changepage}
+\usepackage{soul} % package to activate the highlighting
+\usepackage{etoolbox} % Package to remove the references title
+\usepackage{setspace}\onehalfspacing % Para hacer doble espaciados
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{pdfpages}
+\renewcommand{\familydefault}{\sfdefault}  % setea la letra a Arial que es lo que solicita
+
+
+% Seteo del encabezado con FacyHdr
+\usepackage{fancyhdr}
+% Seteo del header y pie de página
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{}
+\cfoot{\thepage}
+\lfoot{}
+\rfoot{}
+\lhead{\textit{\scriptsize \textbf{\color{darkgray}Documentación procesamiento de datos Exploración y Curación de Datos}}}
+\rhead{\textit{\scriptsize \textbf{\color{darkgray}Grupo-11}}}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+
+% Definicion de colores personales
+\definecolor{Azul-Fredy}{HTML}{17356E}
+
+\titleformat{\section}[block]{\fontsize{12}{12}\bfseries\filright}{\thesection.}{0.25cm}{}
+\titleformat{\subsection}[block]{\fontsize{12}{12}\bfseries\itshape}{\thesubsection.}{0.15cm}{}
+\titleformat{\subsubsection}[block]{\fontsize{12}{12}\itshape}{\thesubsubsection.}{0.15cm}{}
+\titlespacing*{\section}{0cm}{0.5cm}{0.15cm}
+\titlespacing*{\subsection}{0.7cm}{0.5cm}{0.15cm} %\titlespacing*{<command>}{<left>}{<before-sep>}{<after-sep>}
+\titlespacing*{\subsubsection}{0.7cm}{0.35cm}{0.1cm} %\titlespacing*{<command>}{<left>}{<before-sep>}{<after-sep>}
+\titleformat{\paragraph}[block]{\fontsize{12}{15}\bfseries\itshape}{\theparagraph.}{0.2cm}{}
+\titlespacing*{\paragraph}{\parindent}{1ex}{1em}
+\setlength{\parindent}{0.8cm}
+\setcounter{secnumdepth}{4}
+
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}
+
+% Command to remove the references title
+%\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+
+
+\begin{document}
+	
+	Objetivo General: El problema de trabajo contempla predecir los precios de propiedades en la ciudad de Melborne, Australia. Para ello se cuenta con un \href{https://cs.famaf.unc.edu.ar/~mteruel/datasets/diplodatos/melb_data.csv}{\color{Blue4}\textit{DataSet Base}}, que es complementado con datos sobre precios de alquileres obtenidos de la plataforma \href{https://cs.famaf.unc.edu.ar/~mteruel/datasets/diplodatos/cleansed_listings_dec18.csv}{\color{Blue4}\textit{AirBnB}}.
+	
+	\begin{enumerate}
+		
+		\item En una primer etapa se configura una base de datos SQL para contener la información de orígen.
+
+		\item Para enriquecer con datos la tabla original de Melbourne, incopora información de la DB AirBnB respecto de los precios de alquileres diarios, semanales y mensuales. Se obtiene un archivo .csv final llamado \textit{melb\_data\_extended.csv}.
+		
+		\item Se eliminan columnas que no se consideran relevantes al problema de predicción de precios. Ellas son:
+
+		\begin{itemize}
+			\item \textit{Propertycount}: creemos que es solo un registro de numeración de propiedades por suburbio
+			\item \textit{index.1}: una columna de indices que proviene de un Join anterior
+			\item \textit{zipcode}: ya tenemos esa información en la variable Postcode
+			\item \textit{Date}: existen solo 58 registros de esta fecha, con lo cual suponemos es la fecha de carga del dato. Es irrelevante al precio.
+			\item \textit{SellerG}: figuran apellidos, deben ser los responsables de administrar la venta de la propiedad. Irrelevante al precio.
+			\item \textit{Address}: la dirección específica de cada propiedad. No describe entorno.
+			\item \text{Bedroom2}: es una variable que contiene información redundante y de menor densidad que la variable \textit{'Room'}.
+		\end{itemize}
+		
+		\item Se analiza la presencia de outliers en el dataframe combinado: Se elimina 1 valor extremo en la variable 'Landsize' y 'BuildingArea'.
+		
+		\item Se analiza de manera crítica la variable 'YearBuilt'. Se eliminan datos de propiedades con fecha de construcción anterior al año 1900.
+		
+		\item Se identifican necesidades de imputación de datos, ya que hay faltantes en diversas columnas. La acciones de imputación realizadas sobre las distintas columnas son:
+		
+		\begin{itemize}
+			\item \textit{Car}: solo existen 48 datos a ser imputados. Se asumen que esos casos \textbf{"no tienen cochera"}, se hace una \textbf{imputación simple asignando valor = 0}.
+			\item Se realizaron imputaciones sobre las variables \textit{'BuildingArea'}, \textit{'YearBuilt'}, \textit{'avg\_weekly\_price'} y \textit{'avg\_monthly\_price'} empleando el método IterativeImpter, basado en dos estimadores:
+			
+			\begin{enumerate}
+				\item \textit{KNeighborsRegressor()}
+				\item \textit{BayesianRidge()}
+			\end{enumerate}
+			
+		\end{itemize}
+		
+		\item Se realizaron encodings de variables categóricas para fines posteriores de predicció de precios. Previo a esos encoding se:
+		
+		\begin{itemize}
+			\item Redujeron categorías en las columnas \textit{'Suburb'} y '\textit{CouncilArea'}. Se dejaron como el original las columnas que tienen mas de 120 registros idénticos para \textit{'Suburb'}y 250 registros para '\textit{CouncilArea'}. Las que tienen menos se unificaron bajo 'Other'. 
+			\item Se reliza codificación del tipo OneHotEncoder sobre las variables categóricas.
+		\end{itemize}
+		
+		
+		\item Luego se procedió a reducir la dimensionalidad del DataFrame, empleando Principal Component Analysis (PCA): Se incorporaron los 10 primeros componentes principales al DataFrame, los cuales acumulan mas del 60\% de la varianza. 
+	\end{enumerate}
+	
+\end{document}
